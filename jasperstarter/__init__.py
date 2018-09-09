@@ -3,6 +3,7 @@ import re
 import os
 import json
 import logging
+import datetime
 import subprocess
 from shutil import which
 from tempfile import TemporaryDirectory
@@ -69,7 +70,9 @@ class Jasper:
     def __init__(self, xml):
         self.jrxml = Jrxml(xml)
         self.jasper_file = xml.replace("jrxml", "jasper")
-        self.name = xml.replace(".jrxml", "")
+        self.name = os.path.splitext(self.jasper_file)[0]
+
+        self.resource_dir = os.path.dirname(os.path.abspath(self.jasper_file))
 
     def compile(self):
         self.jrxml.compile()
@@ -85,7 +88,7 @@ class Jasper:
         with TemporaryDirectory() as dirname:
             tmp_data = os.path.join(dirname, "data.json")
             with open(tmp_data, "w") as f:
-                json.dump(data, f)
+                json.dump(data, f, default=myconverter)
 
             file_name = self.name + "." + format
             if not output:
@@ -96,10 +99,15 @@ class Jasper:
                 os.remove(file)
 
             cmd = ['jasperstarter', 'pr', self.jasper_file, '-t', 'json',
-                   '--data-file', f.name, '--json-query', query, '-f', format, '-o', output]
+                   '--data-file', f.name, '--json-query', query, '-f', format,
+                   '-o', output, '-r', self.resource_dir]
             logging.debug(" ".join(cmd))
             cp = subprocess.run(cmd)
-            out = subprocess.check_call(cmd, shell=True)
             if cp.returncode != 0:
-                raise Exception("Deu pau")
+                raise Exception("Error when try to process the report")
             return file
+
+
+def myconverter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()

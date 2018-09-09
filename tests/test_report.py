@@ -1,5 +1,6 @@
 import os
 import unittest
+from datetime import datetime
 
 from bs4 import BeautifulSoup
 
@@ -36,17 +37,17 @@ class JasperTestCase(unittest.TestCase):
             {
                 "codigo_municipio": "131",
                 "nome_municipio": "PARAMOTI",
-                "geoibgeId": "2310407"
+                "geoibgeId": "2310407",
             },
             {
                 "codigo_municipio": "132",
                 "nome_municipio": "PEDRA BRANCA",
-                "geoibgeId": "2310506"
+                "geoibgeId": "2310506",
             },
             {
                 "codigo_municipio": "133",
                 "nome_municipio": "PENAFORTE",
-                "geoibgeId": "2310605"
+                "geoibgeId": "2310605",
             },
             {
                 "codigo_municipio": "134",
@@ -75,7 +76,7 @@ class JasperTestCase(unittest.TestCase):
         table = soup.find('table', class_='jrPage')
         lines = table.find_all('span', attrs={
             'style': 'font-family: Times New Roman; color: #000000; font-size: 14px; line-height: 1.1499023;'})
-        self.assertEquals(len(lines), 12)
+        self.assertEqual(len(lines), 12)
 
     def test_name_attribute(self):
         jasper = Jasper("municipios.jrxml")
@@ -85,3 +86,8 @@ class JasperTestCase(unittest.TestCase):
         with self.assertRaises(UnsupportedFormat):
             jasper = Jasper("municipios.jrxml")
             jasper.execute(self.data, "mp3")
+
+    def test_resource_dir(self):
+        jasper = Jasper("municipios.jrxml")
+        curdir = os.path.abspath(os.path.curdir)
+        self.assertEqual(jasper.resource_dir, curdir)
