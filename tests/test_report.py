@@ -1,9 +1,11 @@
 import os
 import unittest
-from datetime import datetime
+from subprocess import Popen, PIPE
+from datetime import datetime, date
 
 from bs4 import BeautifulSoup
 
+import jasperstarter
 from jasperstarter import Jasper, Jrxml
 from jasperstarter.exeptions import JrxmlNotFound
 from jasperstarter.exeptions import UnsupportedFormat
@@ -12,21 +14,25 @@ from jasperstarter.exeptions import UnsupportedFormat
 class JrxmlTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.jxml_file = "sample01.jrxml"
+        self.jxml_file = "invoices.jrxml"
 
     def tearDown(self):
-        if os.path.exists("sample01.jasper"):
-            os.remove("sample01.jasper")
+        if os.path.exists("invoices.jasper"):
+            os.remove("invoices.jasper")
 
     def test_compile(self):
         jrxml = Jrxml(self.jxml_file)
         jrxml.compile()
-        self.assertTrue(os.path.exists("sample01.jasper"))
+        self.assertTrue(os.path.exists("invoices.jasper"))
 
     def test_report_compile_should_raise_exeption_if_the_jrxml_not_found(self):
         with self.assertRaises(JrxmlNotFound):
             jrxml = Jrxml('imnotarobot.jrxml')
             jrxml.compile()
+
+    def test_params(self):
+        jrxml = Jrxml(self.jxml_file)
+        self.assertEqual(jrxml.params, ['companyName', 'beginDate'])
 
 
 class JasperTestCase(unittest.TestCase):
@@ -34,41 +40,35 @@ class JasperTestCase(unittest.TestCase):
     def setUp(self):
         self.jxml_file = "sample01.jrxml"
         self.data = [
-            {
-                "codigo_municipio": "131",
-                "nome_municipio": "PARAMOTI",
-                "geoibgeId": "2310407",
-            },
-            {
-                "codigo_municipio": "132",
-                "nome_municipio": "PEDRA BRANCA",
-                "geoibgeId": "2310506",
-            },
-            {
-                "codigo_municipio": "133",
-                "nome_municipio": "PENAFORTE",
-                "geoibgeId": "2310605",
-            },
-            {
-                "codigo_municipio": "134",
-                "nome_municipio": "PENTECOSTE",
-                "geoibgeId": "2310704"
-            }
+            {"name": "John", "invoiceNum": "001", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Ian", "invoiceNum": "002", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Dany", "invoiceNum": "003", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Rafael", "invoiceNum": "004", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Jose", "invoiceNum": "005", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Lana", "invoiceNum": "006", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Reuber", "invoiceNum": "007", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Sebastian", "invoiceNum": "008", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Sammy", "invoiceNum": "009", "value": 5000.32, "dueDate": datetime.now()},
+            {"name": "Luna", "invoiceNum": "010", "value": 5000.32, "dueDate": datetime.now()}
         ]
+        self.FORMATS = jasperstarter.FORMATS
 
     def tearDown(self):
-        if os.path.exists("municipios.jasper"):
-            os.remove("municipios.jasper")
-        if os.path.exists("municipios.pdf"):
-            os.remove("municipios.pdf")
+        jasperstarter.FORMATS = self.FORMATS
+        if os.path.exists("invoices.jasper"):
+            os.remove("invoices.jasper")
+        if os.path.exists("invoices.pdf"):
+            os.remove("invoices.pdf")
 
     def test_execute_should_return_the_pdf_file(self):
-        jasper = Jasper("municipios.jrxml")
+        jasper = Jasper("invoices.jrxml")
         file = jasper.execute(self.data, "pdf")
-        self.assertTrue(os.path.isfile(file))
+        popen = Popen("/usr/bin/file -b --mime -", shell=True, stdout=PIPE, stdin=PIPE)
+        filetype = popen.communicate(file)[0].strip()
+        self.assertEqual(filetype, 'application/pdf; charset=binary')
 
     def test_execute_with_empty_query(self):
-        jasper = Jasper("municipios.jrxml")
+        jasper = Jasper("invoices.jrxml")
         file = jasper.execute(self.data, "html", query=None)
 
         with open(file) as fp:
@@ -79,15 +79,36 @@ class JasperTestCase(unittest.TestCase):
         self.assertEqual(len(lines), 12)
 
     def test_name_attribute(self):
-        jasper = Jasper("municipios.jrxml")
-        self.assertEquals(jasper.name, "municipios")
+        jasper = Jasper("invoices.jrxml")
+        self.assertEquals(jasper.name, "invoices")
 
     def test_raise_error_if_use_a_unsopported_file_type(self):
         with self.assertRaises(UnsupportedFormat):
-            jasper = Jasper("municipios.jrxml")
+            jasper = Jasper("invoices.jrxml")
             jasper.execute(self.data, "mp3")
 
     def test_resource_dir(self):
-        jasper = Jasper("municipios.jrxml")
+        jasper = Jasper("invoices.jrxml")
         curdir = os.path.abspath(os.path.curdir)
         self.assertEqual(jasper.resource_dir, curdir)
+
+    def test_execute_should_return_the_error_message_raised_by_comand_line(self):
+        jasperstarter.FORMATS = ['mp3']
+        jasper = Jasper("invoices.jrxml")
+        jasper.execute({}, format='mp3')
+
+    def test_parameters_cmd(self):
+        params = {'company': 'Vortex', 'beginDate': '2019-28-01', 'age': 32}
+        jasper = Jasper("invoices.jrxml")
+        pcmd = jasper._parameters_cmd(params)
+        self.assertEqual(['company=Vortex', 'beginDate=2019-28-01', 'age=32'], pcmd)
+
+    def test_parameters_shold_be_rended_on_report(self):
+        jasper = Jasper("invoices.jrxml")
+        today = date.today().isoformat()
+        output = jasper.execute(self.data, format="html",
+            params={'companyName': 'Vortex', 'beginDate': today})
+
+        soup = BeautifulSoup(output)
+        self.assertEqual(1, len(soup.find_all('span', string='Vortex')))
+        self.assertEqual(1, len(soup.find_all('span', string=today)))

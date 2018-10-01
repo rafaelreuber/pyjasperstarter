@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="invoices" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="invoices"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="companyName" class="java.lang.String">
+		<parameterDescription><![CDATA[The company date]]></parameterDescription>
+	</parameter>
+	<parameter name="beginDate" class="java.lang.String"/>
+	<queryString language="json">
+		<![CDATA[.]]>
+	</queryString>
+	<field name="name" class="java.lang.String">
+		<property name="net.sf.jasperreports.json.field.expression" value="name"/>
+		<fieldDescription><![CDATA[name]]></fieldDescription>
+	</field>
+	<field name="invoiceNum" class="java.lang.Integer">
+		<property name="net.sf.jasperreports.json.field.expression" value="invoiceNum"/>
+		<fieldDescription><![CDATA[invoiceNum]]></fieldDescription>
+	</field>
+	<field name="value" class="java.lang.String">
+		<property name="net.sf.jasperreports.json.field.expression" value="value"/>
+		<fieldDescription><![CDATA[value]]></fieldDescription>
+	</field>
+	<field name="dueDate" class="java.lang.String">
+		<property name="net.sf.jasperreports.json.field.expression" value="dueDate"/>
+		<fieldDescription><![CDATA[dueDate]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="88" splitType="Stretch">
+			<image>
+				<reportElement x="0" y="5" width="60" height="32" uuid="13752479-c282-4942-b1ef-3e8cfa4b2ef3"/>
+				<imageExpression><![CDATA["acme.jpg"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="190" y="6" width="100" height="30" uuid="c6851c80-a5f9-4b2b-8785-32afe8de195c"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Invoices Report]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="71" y="50" width="130" height="14" forecolor="#5E00FF" uuid="a0746ae1-6f9c-4f32-bcc0-11a3175cdf22"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{companyName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="71" y="64" width="130" height="14" forecolor="#5E00FF" uuid="02178730-e86c-4e22-9ef2-b01c968a74df"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{beginDate}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="50" width="71" height="14" uuid="0b5d8dc8-bd3e-4747-acc2-b5b7cef81df5"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Company:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="64" width="71" height="14" uuid="174698b8-4343-4366-8007-4c9f7fafb8fe"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="25" splitType="Stretch">
+			<staticText>
+				<reportElement style="Column header" x="0" y="7" width="138" height="18" forecolor="#000000" uuid="c41f04e1-aab1-45bf-8028-3c545cb69ddb">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="52d6b793-7cfe-4640-9ca2-b2c74e1e00c0"/>
+				</reportElement>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Customer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="138" y="7" width="138" height="18" forecolor="#000000" uuid="b923ce9a-422b-47f9-808d-f5702e72e4c7">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0540306d-a88f-41b1-9f9a-a2b222671107"/>
+				</reportElement>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Invoice Nº]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="276" y="7" width="138" height="18" forecolor="#000000" uuid="fcb9f34a-d145-464c-9dfc-4b725c45c8cb">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="c6bff63b-b2e5-4caf-824a-2dacf55ebba2"/>
+				</reportElement>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Value]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="414" y="7" width="138" height="18" forecolor="#000000" uuid="fc94f73a-f95a-4966-90ce-28381a91b846">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="38f88df3-8e0d-4958-8564-4212256ba33c"/>
+				</reportElement>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Due Date]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<frame>
+				<reportElement style="Row" mode="Opaque" x="0" y="0" width="555" height="18" uuid="b50221b5-8254-440b-8c6f-1f0b138c9259"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="0" y="0" width="138" height="18" uuid="fdd9331f-4996-4b2e-ae86-cf0890ebf5fc">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="52d6b793-7cfe-4640-9ca2-b2c74e1e00c0"/>
+					</reportElement>
+					<textElement>
+						<font size="14"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="138" y="0" width="138" height="18" uuid="099ad4f2-0eb7-4464-b73d-2b6d376d36dc">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0540306d-a88f-41b1-9f9a-a2b222671107"/>
+					</reportElement>
+					<textElement>
+						<font size="14"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{invoiceNum}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="276" y="0" width="138" height="18" uuid="9ade4c2b-0c9b-49b6-864d-6b06d6dce452">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="c6bff63b-b2e5-4caf-824a-2dacf55ebba2"/>
+					</reportElement>
+					<textElement>
+						<font size="14"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{value}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="414" y="0" width="138" height="18" uuid="c3f24e11-b684-4393-a31d-5666d7733cb1">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="38f88df3-8e0d-4958-8564-4212256ba33c"/>
+					</reportElement>
+					<textElement>
+						<font size="14"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dueDate}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="7" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="555" height="1" uuid="1133a906-5b71-476e-9f3e-bc97c97058c1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
