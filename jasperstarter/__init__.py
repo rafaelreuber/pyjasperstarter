@@ -1,19 +1,19 @@
 
-import re
 import os
 import json
 import logging
 import datetime
 import subprocess
+from functools import lru_cache
+import time
 from shutil import which
 from tempfile import TemporaryDirectory
 
-import xmltodict
 
 from .exeptions import JasperStarterNotFound, \
     JrxmlNotFound, UnsupportedFormat
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger('jasperstarter')
 
 
 if not which('jasperstarter'):
@@ -23,6 +23,19 @@ if not which('jasperstarter'):
 FORMATS = ['pdf', 'rtf', 'xls', 'xlsMeta', 'xlsx', 'docx',
            'odt', 'ods', 'pptx', 'csv', 'csvMeta', 'html',
            'xhtml', 'xml', 'jrprint']
+
+
+@lru_cache(maxsize=32)
+def compile_jrxml(xml, modtime):
+    logger.debug("Compiling " + xml)
+    start = time.perf_counter()
+
+    cp = subprocess.run(["jasperstarter", "cp", xml])
+    if cp.returncode != 0:
+        raise Exception("Error when try to compile " + xml)
+
+    end = time.perf_counter()
+    logger.debug("Compilation time: {:3.2f}s".format(end - start))
 
 
 class Jrxml:
@@ -37,32 +50,31 @@ class Jrxml:
         if not os.path.exists(jrxml):
             raise JrxmlNotFound()
         self.xml = jrxml
-        with open(jrxml) as f:
-            self.json = xmltodict.parse(f.read())['jasperReport']
 
     def compile(self):
+        modtime = os.path.getmtime(self.xml)
+        compile_jrxml(self.xml, modtime)
+
+    @lru_cache()
+    def _compile(self, modtime):
+        logger.debug("Compiling " + self.xml)
+        start = time.perf_counter()
+
         cp = subprocess.run(["jasperstarter", "cp", self.xml])
         if cp.returncode != 0:
             raise Exception("Error when try to compile " + self.xml)
 
-    @property
-    def parameters(self):
-        f = open(self.xml, 'r')
-        f_content = f.read()
-        f.close()
-        xmlstring = re.sub(' xmlns="[^"]+"', '', f_content, count=1)
+        end = time.perf_counter()
+        logger.debug("Compilation time: {:3.2f}s".format(end - start))
 
-        param_dic = {}
-        tree = ET.fromstring(xmlstring)
-        for item in tree.findall(
-                'parameter'):
-            if item.get('name'):
-                param_dic.update({item.get('name'): [item.get('class')]})
-            if list(item):
-                param_dic[item.get('name')].append(list(item)[0].text)
-            else:
-                param_dic[item.get('name')].append('')
-        return param_dic
+    @property
+    def params(self):
+        output = subprocess.check_output(["jasperstarter", "params", self.xml])
+        output = output.decode().split("\n")
+        if len(output) == 0:
+            return None
+        params = [x.split(" ")[1] for x in output if x != ""]
+        return params
 
 
 class Jasper:
@@ -78,7 +90,12 @@ class Jasper:
     def compile(self):
         self.jrxml.compile()
 
-    def execute(self, data, format='pdf', output=None, query=None):
+    @property
+    def params(self):
+        return self.jrxml.params
+
+    def execute(self, data, format='pdf', params=None, output=None, query=None):
+        start = time.perf_counter()
         self.compile()
         if format not in FORMATS:
             raise UnsupportedFormat()
@@ -98,17 +115,31 @@ class Jasper:
                    '-t', 'json', '--data-file', f.name, '--json-query', query,
                    '-f', format, '-o', dirname, '-r', self.resource_dir]
 
-            if os.path.exists(file):
-                os.remove(file)
+            if params:
+                _params = self._parameters_cmd(params)
+                cmd = cmd + ['-P'] + _params
 
-            cmd = ['jasperstarter', 'pr', self.jasper_file, '-t', 'json',
-                   '--data-file', f.name, '--json-query', query, '-f', format,
-                   '-o', output, '-r', self.resource_dir]
-            logging.debug(" ".join(cmd))
+            if logger.level == logging.DEBUG:
+                logger.debug("Processing: " + " ".join(cmd))
+            else:
+                logger.info("Processing :" + self.name)
+
             cp = subprocess.run(cmd)
+
+            end = time.perf_counter()
+            logger.debug("Processing  time: {:3.2f}s".format(end - start))
+
             if cp.returncode != 0:
                 raise Exception("Error when try to process the report")
-            return file
+            with open(file, 'rb') as fb:
+                fbytes = fb.read()
+            return fbytes
+
+    def _parameters_cmd(self, params):
+        _params = []
+        for k, v in params.items():
+            _params.append(k+"="+str(v))
+        return _params
 
 
 def myconverter(o):
