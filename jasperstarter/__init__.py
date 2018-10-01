@@ -67,10 +67,11 @@ class Jrxml:
 
 class Jasper:
 
-    def __init__(self, xml):
+    def __init__(self, xml, locale='en_US'):
         self.jrxml = Jrxml(xml)
         self.jasper_file = xml.replace("jrxml", "jasper")
-        self.name = os.path.splitext(self.jasper_file)[0]
+        self.name = os.path.splitext(os.path.basename(self.jasper_file))[0]
+        self.locale = locale
 
         self.resource_dir = os.path.dirname(os.path.abspath(self.jasper_file))
 
@@ -91,9 +92,11 @@ class Jasper:
                 json.dump(data, f, default=myconverter)
 
             file_name = self.name + "." + format
-            if not output:
-                output = os.path.abspath(os.path.curdir)
-            file = os.path.join(output, file_name)
+            file = os.path.join(dirname, file_name)
+
+            cmd = ['jasperstarter', '--locale', self.locale, 'pr', self.jasper_file,
+                   '-t', 'json', '--data-file', f.name, '--json-query', query,
+                   '-f', format, '-o', dirname, '-r', self.resource_dir]
 
             if os.path.exists(file):
                 os.remove(file)
