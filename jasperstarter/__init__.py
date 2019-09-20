@@ -142,6 +142,12 @@ class Jasper:
         return _params
 
 
+def get_jasper_starter_version():
+    cp = subprocess.run(['jasperstarter', '--version'], capture_output=True)
+    version = cp.stdout.decode().replace('\n', '')
+    return version
+
+
 def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()

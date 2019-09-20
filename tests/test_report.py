@@ -31,8 +31,12 @@ class JrxmlTestCase(unittest.TestCase):
             jrxml.compile()
 
     def test_params(self):
-        jrxml = Jrxml(self.jxml_file)
+
         self.assertEqual(jrxml.params, ['companyName', 'beginDate'])
+
+    def test_query(self):
+        jrxml = Jrxml(self.jxml_file)
+        self.assertEqual(jrxml.query, ".")
 
 
 class JasperTestCase(unittest.TestCase):
@@ -112,3 +116,10 @@ class JasperTestCase(unittest.TestCase):
         soup = BeautifulSoup(output)
         self.assertEqual(1, len(soup.find_all('span', string='Vortex')))
         self.assertEqual(1, len(soup.find_all('span', string=today)))
+
+
+class JasperStarterVersion(unittest.TestCase):
+
+    def test_get_jasper_starter_version(self):
+        from jasperstarter import get_jasper_starter_version
+        self.assertIsNotNone(get_jasper_starter_version())
