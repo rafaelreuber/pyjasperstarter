@@ -103,9 +103,10 @@ class Jasper:
     def params(self):
         return self.jrxml.params
 
-    def execute(self, data, format='pdf', params=None, output=None, query=None):
+    def execute(self, data, format='pdf', params=None, output=None, query=None, compile=False):
         start = time.perf_counter()
-        self.compile()
+        if compile:
+            self.compile()
         if format not in FORMATS:
             raise UnsupportedFormat()
 
