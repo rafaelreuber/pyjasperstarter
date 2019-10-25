@@ -14,7 +14,7 @@ from jasperstarter.exeptions import UnsupportedFormat
 class JrxmlTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.jxml_file = "invoices.jrxml"
+        self.jxml_file = os.path.join(os.path.dirname(__file__), "invoices.jrxml")
 
     def tearDown(self):
         if os.path.exists("invoices.jasper"):
@@ -44,7 +44,8 @@ class JrxmlTestCase(unittest.TestCase):
 class JasperTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.jxml_file = "sample01.jrxml"
+        self.jxml_file = os.path.join(os.path.dirname(__file__), "sample01.jrxml")
+
         self.data = [
             {"name": "John", "invoiceNum": "001", "value": 5000.32, "dueDate": datetime.now()},
             {"name": "Ian", "invoiceNum": "002", "value": 5000.32, "dueDate": datetime.now()},
@@ -67,50 +68,53 @@ class JasperTestCase(unittest.TestCase):
             os.remove("invoices.pdf")
 
     def test_execute_should_return_the_pdf_file(self):
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         file = jasper.execute(self.data, "pdf")
         popen = Popen("/usr/bin/file -b --mime -", shell=True, stdout=PIPE, stdin=PIPE)
         filetype = popen.communicate(file)[0].strip()
-        self.assertEqual(filetype, 'application/pdf; charset=binary')
+        self.assertEqual(filetype.decode(), 'application/pdf; charset=binary')
 
     def test_execute_with_empty_query(self):
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         file = jasper.execute(self.data, "html", query=None)
 
-        with open(file) as fp:
-            soup = BeautifulSoup(fp)
+        soup = BeautifulSoup(file)
+
         table = soup.find('table', class_='jrPage')
         lines = table.find_all('span', attrs={
             'style': 'font-family: Times New Roman; color: #000000; font-size: 14px; line-height: 1.1499023;'})
         self.assertEqual(len(lines), 12)
 
     def test_name_attribute(self):
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         self.assertEquals(jasper.name, "invoices")
 
     def test_raise_error_if_use_a_unsopported_file_type(self):
         with self.assertRaises(UnsupportedFormat):
-            jasper = Jasper("invoices.jrxml")
+            jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
             jasper.execute(self.data, "mp3")
 
     def test_resource_dir(self):
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         curdir = os.path.abspath(os.path.curdir)
         self.assertEqual(jasper.resource_dir, curdir)
 
     def test_execute_should_return_the_error_message_raised_by_comand_line(self):
         jasperstarter.FORMATS = ['mp3']
         jasper = Jasper("invoices.jrxml")
-        jasper.execute({}, format='mp3')
+        from jasperstarter.exeptions import JRRuntimeError
+        with self.assertRaises(JRRuntimeError) as err:
+            jasper.execute({}, format='mp3')
+        self.assertTrue("could  not  convert  'mp3'" in str(err.exception))
 
     def test_parameters_cmd(self):
         params = {'company': 'Vortex', 'beginDate': '2019-28-01', 'age': 32}
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         pcmd = jasper._parameters_cmd(params)
         self.assertEqual(['company=Vortex', 'beginDate=2019-28-01', 'age=32'], pcmd)
 
     def test_parameters_shold_be_rended_on_report(self):
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         today = date.today().isoformat()
         output = jasper.execute(self.data, format="html",
             params={'companyName': 'Vortex', 'beginDate': today})

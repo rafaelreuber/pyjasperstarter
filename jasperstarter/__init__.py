@@ -13,6 +13,9 @@ from xml.etree import ElementTree as ET
 from .exeptions import JasperStarterNotFound, \
     JrxmlNotFound, UnsupportedFormat
 
+from .util import get_error
+from .exeptions import JRRuntimeError
+
 logger = logging.getLogger('jasperstarter')
 
 
@@ -128,13 +131,15 @@ class Jasper:
             else:
                 logger.info("Processing :" + self.name)
 
-            cp = subprocess.run(cmd)
+            cp = subprocess.run(cmd, capture_output=True)
 
             end = time.perf_counter()
             logger.debug("Processing  time: {:3.2f}s".format(end - start))
 
             if cp.returncode != 0:
-                raise Exception("Error when try to process the report")
+                err = get_error(cp.stderr)
+                raise JRRuntimeError(err)
+
             with open(file, 'rb') as fb:
                 fbytes = fb.read()
             return fbytes
