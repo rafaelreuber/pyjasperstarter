@@ -11,3 +11,7 @@ class JrxmlNotFound(Exception):
 
 class UnsupportedFormat(Exception):
     pass
+
+
+class JRRuntimeError(Exception):
+    """Error on execution"""
