@@ -113,7 +113,7 @@ class Jasper:
         if not query:
             query = ""
 
-        with TemporaryDirectory() as dirname:
+        with TemporaryDirectory(prefix='jasperstarter_') as dirname:
             tmp_data = os.path.join(dirname, "data.json")
             with open(tmp_data, "w") as f:
                 json.dump(data, f, default=myconverter)
