@@ -31,8 +31,10 @@ class JrxmlTestCase(unittest.TestCase):
             jrxml.compile()
 
     def test_params(self):
-
-        self.assertEqual(jrxml.params, ['companyName', 'beginDate'])
+        jrxml = Jrxml(self.jxml_file)
+        pairs = zip(jrxml.params, [{'name': 'companyName', 'class': 'java.lang.String'},
+                                   {'name': 'beginDate', 'class': 'java.lang.String'}])
+        self.assertTrue(all(x == y for x, y in pairs))
 
     def test_query(self):
         jrxml = Jrxml(self.jxml_file)

@@ -8,7 +8,7 @@ from functools import lru_cache
 import time
 from shutil import which
 from tempfile import TemporaryDirectory
-
+from xml.etree import ElementTree as ET
 
 from .exeptions import JasperStarterNotFound, \
     JrxmlNotFound, UnsupportedFormat
@@ -42,6 +42,7 @@ class Jrxml:
     """
     JasperReport definition file
     """
+    namespace = {"jspr": "http://jasperreports.sourceforge.net/jasperreports"}
 
     def __init__(self, jrxml):
         """
@@ -69,12 +70,15 @@ class Jrxml:
 
     @property
     def params(self):
-        output = subprocess.check_output(["jasperstarter", "params", self.xml])
-        output = output.decode().split("\n")
-        if len(output) == 0:
-            return None
-        params = [x.split(" ")[1] for x in output if x != ""]
-        return params
+        xml = ET.fromstring(self.xml_data)
+        parameters = xml.findall('jspr:parameter', self.namespace)
+        parameters = [x.attrib for x in parameters]
+        return parameters
+
+    @property
+    def query(self):
+        xml = ET.fromstring(self.xml_data)
+        xml.find('jspr:queryString', self.namespace)
 
 
 class Jasper:
