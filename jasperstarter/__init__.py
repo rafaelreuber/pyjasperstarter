@@ -54,6 +54,8 @@ class Jrxml:
         if not os.path.exists(jrxml):
             raise JrxmlNotFound()
         self.xml = jrxml
+        with open(jrxml, 'r', newline='\n') as f:
+            self.xml_data = f.read()
 
     def compile(self):
         modtime = os.path.getmtime(self.xml)
