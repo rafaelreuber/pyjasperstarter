@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="invoices" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="invoices"/>
+<!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0-unknown  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="invoices" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="13acf49e-4913-4d1b-bccc-113817ad15d1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapterJson.xml"/>
 	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false"/>
 	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false"/>
 	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true"/>
@@ -91,7 +91,7 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="52d6b793-7cfe-4640-9ca2-b2c74e1e00c0"/>
 				</reportElement>
 				<textElement>
-					<font isBold="false"/>
+					<font size="12" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Customer]]></text>
 			</staticText>
@@ -100,7 +100,7 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0540306d-a88f-41b1-9f9a-a2b222671107"/>
 				</reportElement>
 				<textElement>
-					<font isBold="false"/>
+					<font size="12" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Invoice Nº]]></text>
 			</staticText>
@@ -109,7 +109,7 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="c6bff63b-b2e5-4caf-824a-2dacf55ebba2"/>
 				</reportElement>
 				<textElement>
-					<font isBold="false"/>
+					<font size="12" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Value]]></text>
 			</staticText>
@@ -118,22 +118,25 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="38f88df3-8e0d-4958-8564-4212256ba33c"/>
 				</reportElement>
 				<textElement>
-					<font isBold="false"/>
+					<font size="12" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Due Date]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="18" splitType="Stretch">
+		<band height="14" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<frame>
-				<reportElement style="Row" mode="Opaque" x="0" y="0" width="555" height="18" uuid="b50221b5-8254-440b-8c6f-1f0b138c9259"/>
+				<reportElement style="Row" mode="Opaque" x="0" y="0" width="555" height="13" uuid="b50221b5-8254-440b-8c6f-1f0b138c9259">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
 				<textField isStretchWithOverflow="true">
 					<reportElement style="Detail" positionType="Float" x="0" y="0" width="138" height="18" uuid="fdd9331f-4996-4b2e-ae86-cf0890ebf5fc">
 						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="52d6b793-7cfe-4640-9ca2-b2c74e1e00c0"/>
 					</reportElement>
 					<textElement>
-						<font size="14"/>
+						<font size="10"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
@@ -142,7 +145,7 @@
 						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0540306d-a88f-41b1-9f9a-a2b222671107"/>
 					</reportElement>
 					<textElement>
-						<font size="14"/>
+						<font size="10"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{invoiceNum}]]></textFieldExpression>
 				</textField>
@@ -151,16 +154,16 @@
 						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="c6bff63b-b2e5-4caf-824a-2dacf55ebba2"/>
 					</reportElement>
 					<textElement>
-						<font size="14"/>
+						<font size="10"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{value}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
-					<reportElement style="Detail" positionType="Float" x="414" y="0" width="138" height="18" uuid="c3f24e11-b684-4393-a31d-5666d7733cb1">
+				<textField isStretchWithOverflow="true" pattern="M/d/yy">
+					<reportElement key="" style="Detail" positionType="Float" x="415" y="0" width="138" height="18" uuid="c3f24e11-b684-4393-a31d-5666d7733cb1">
 						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="38f88df3-8e0d-4958-8564-4212256ba33c"/>
 					</reportElement>
 					<textElement>
-						<font size="14"/>
+						<font size="10"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{dueDate}]]></textFieldExpression>
 				</textField>
