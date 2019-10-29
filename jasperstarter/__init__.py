@@ -4,6 +4,7 @@ import json
 import logging
 import datetime
 import subprocess
+from subprocess import PIPE
 from functools import lru_cache
 import time
 from shutil import which
@@ -134,7 +135,7 @@ class Jasper:
             else:
                 logger.info("Processing :" + self.name)
 
-            cp = subprocess.run(cmd, capture_output=True)
+            cp = subprocess.run(cmd, stderr=PIPE, stdout=PIPE)
 
             end = time.perf_counter()
             logger.debug("Processing  time: {:3.2f}s".format(end - start))
@@ -155,7 +156,7 @@ class Jasper:
 
 
 def get_jasper_starter_version():
-    cp = subprocess.run(['jasperstarter', '--version'], capture_output=True)
+    cp = subprocess.run(['jasperstarter', '--version'], stderr=PIPE, stdout=PIPE)
     version = cp.stdout.decode().replace('\n', '')
     return version
 
