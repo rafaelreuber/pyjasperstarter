@@ -8,10 +8,13 @@ from functools import lru_cache
 import time
 from shutil import which
 from tempfile import TemporaryDirectory
-
+from xml.etree import ElementTree as ET
 
 from .exeptions import JasperStarterNotFound, \
     JrxmlNotFound, UnsupportedFormat
+
+from .util import get_error
+from .exeptions import JRRuntimeError
 
 logger = logging.getLogger('jasperstarter')
 
@@ -42,6 +45,7 @@ class Jrxml:
     """
     JasperReport definition file
     """
+    namespace = {"jspr": "http://jasperreports.sourceforge.net/jasperreports"}
 
     def __init__(self, jrxml):
         """
@@ -50,6 +54,8 @@ class Jrxml:
         if not os.path.exists(jrxml):
             raise JrxmlNotFound()
         self.xml = jrxml
+        with open(jrxml, 'r', newline='\n') as f:
+            self.xml_data = f.read()
 
     def compile(self):
         modtime = os.path.getmtime(self.xml)
@@ -69,12 +75,15 @@ class Jrxml:
 
     @property
     def params(self):
-        output = subprocess.check_output(["jasperstarter", "params", self.xml])
-        output = output.decode().split("\n")
-        if len(output) == 0:
-            return None
-        params = [x.split(" ")[1] for x in output if x != ""]
-        return params
+        xml = ET.fromstring(self.xml_data)
+        parameters = xml.findall('jspr:parameter', self.namespace)
+        parameters = [x.attrib for x in parameters]
+        return parameters
+
+    @property
+    def query(self):
+        xml = ET.fromstring(self.xml_data)
+        xml.find('jspr:queryString', self.namespace)
 
 
 class Jasper:
@@ -94,16 +103,17 @@ class Jasper:
     def params(self):
         return self.jrxml.params
 
-    def execute(self, data, format='pdf', params=None, output=None, query=None):
+    def execute(self, data, format='pdf', params=None, output=None, query=None, compile=False):
         start = time.perf_counter()
-        self.compile()
+        if compile:
+            self.compile()
         if format not in FORMATS:
             raise UnsupportedFormat()
 
         if not query:
             query = ""
 
-        with TemporaryDirectory() as dirname:
+        with TemporaryDirectory(prefix='jasperstarter_') as dirname:
             tmp_data = os.path.join(dirname, "data.json")
             with open(tmp_data, "w") as f:
                 json.dump(data, f, default=myconverter)
@@ -124,13 +134,15 @@ class Jasper:
             else:
                 logger.info("Processing :" + self.name)
 
-            cp = subprocess.run(cmd)
+            cp = subprocess.run(cmd, capture_output=True)
 
             end = time.perf_counter()
             logger.debug("Processing  time: {:3.2f}s".format(end - start))
 
             if cp.returncode != 0:
-                raise Exception("Error when try to process the report")
+                err = get_error(cp.stderr)
+                raise JRRuntimeError(err)
+
             with open(file, 'rb') as fb:
                 fbytes = fb.read()
             return fbytes
@@ -140,6 +152,12 @@ class Jasper:
         for k, v in params.items():
             _params.append(k+"="+str(v))
         return _params
+
+
+def get_jasper_starter_version():
+    cp = subprocess.run(['jasperstarter', '--version'], capture_output=True)
+    version = cp.stdout.decode().replace('\n', '')
+    return version
 
 
 def myconverter(o):
