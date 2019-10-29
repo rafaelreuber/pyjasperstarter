@@ -84,7 +84,8 @@ class Jrxml:
     @property
     def query(self):
         xml = ET.fromstring(self.xml_data)
-        xml.find('jspr:queryString', self.namespace)
+        _query = xml.find('jspr:queryString', self.namespace).text
+        return _query.strip()
 
 
 class Jasper:
