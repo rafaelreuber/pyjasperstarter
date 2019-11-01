@@ -5,7 +5,6 @@ import logging
 import datetime
 import subprocess
 from subprocess import PIPE
-from functools import lru_cache
 import time
 from shutil import which
 from tempfile import TemporaryDirectory
@@ -29,19 +28,6 @@ FORMATS = ['pdf', 'rtf', 'xls', 'xlsMeta', 'xlsx', 'docx',
            'xhtml', 'xml', 'jrprint']
 
 
-@lru_cache(maxsize=32)
-def compile_jrxml(xml, modtime):
-    logger.debug("Compiling " + xml)
-    start = time.perf_counter()
-
-    cp = subprocess.run(["jasperstarter", "cp", xml])
-    if cp.returncode != 0:
-        raise Exception("Error when try to compile " + xml)
-
-    end = time.perf_counter()
-    logger.debug("Compilation time: {:3.2f}s".format(end - start))
-
-
 class Jrxml:
     """
     JasperReport definition file
@@ -59,18 +45,12 @@ class Jrxml:
             self.xml_data = f.read()
 
     def compile(self):
-        modtime = os.path.getmtime(self.xml)
-        compile_jrxml(self.xml, modtime)
-
-    @lru_cache()
-    def _compile(self, modtime):
         logger.debug("Compiling " + self.xml)
         start = time.perf_counter()
 
         cp = subprocess.run(["jasperstarter", "cp", self.xml])
         if cp.returncode != 0:
             raise Exception("Error when try to compile " + self.xml)
-
         end = time.perf_counter()
         logger.debug("Compilation time: {:3.2f}s".format(end - start))
 
@@ -84,7 +64,8 @@ class Jrxml:
     @property
     def query(self):
         xml = ET.fromstring(self.xml_data)
-        xml.find('jspr:queryString', self.namespace)
+        _query = xml.find('jspr:queryString', self.namespace).text
+        return _query.strip()
 
 
 class Jasper:
@@ -94,8 +75,7 @@ class Jasper:
         self.jasper_file = xml.replace("jrxml", "jasper")
         self.name = os.path.splitext(os.path.basename(self.jasper_file))[0]
         self.locale = locale
-
-        self.resource_dir = os.path.dirname(os.path.abspath(self.jasper_file))
+        self.resource_dir = os.path.dirname(self.jasper_file)
 
     def compile(self):
         self.jrxml.compile()

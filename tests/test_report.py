@@ -1,5 +1,6 @@
 import os
 import unittest
+import logging
 from subprocess import Popen, PIPE
 from datetime import datetime, date
 
@@ -9,6 +10,8 @@ import jasperstarter
 from jasperstarter import Jasper, Jrxml
 from jasperstarter.exeptions import JrxmlNotFound
 from jasperstarter.exeptions import UnsupportedFormat
+
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 class JrxmlTestCase(unittest.TestCase):
@@ -23,7 +26,8 @@ class JrxmlTestCase(unittest.TestCase):
     def test_compile(self):
         jrxml = Jrxml(self.jxml_file)
         jrxml.compile()
-        self.assertTrue(os.path.exists("invoices.jasper"))
+        self.assertTrue(os.path.exists(
+            os.path.join(os.path.dirname(__file__), "invoices.jasper")))
 
     def test_report_compile_should_raise_exeption_if_the_jrxml_not_found(self):
         with self.assertRaises(JrxmlNotFound):
@@ -45,6 +49,7 @@ class JasperTestCase(unittest.TestCase):
 
     def setUp(self):
         self.jxml_file = os.path.join(os.path.dirname(__file__), "sample01.jrxml")
+        self.base_path = os.path.dirname(__file__)
 
         self.data = [
             {"name": "John", "invoiceNum": "001", "value": 5000.32, "dueDate": datetime.now()},
@@ -62,10 +67,16 @@ class JasperTestCase(unittest.TestCase):
 
     def tearDown(self):
         jasperstarter.FORMATS = self.FORMATS
-        if os.path.exists("invoices.jasper"):
-            os.remove("invoices.jasper")
-        if os.path.exists("invoices.pdf"):
-            os.remove("invoices.pdf")
+        if os.path.exists(os.path.join(self.base_path, "invoices.jasper")):
+            os.remove(os.path.join(self.base_path, "invoices.jasper"))
+
+        pdf_file = os.path.join(self.base_path, "invoices.pdf")
+        html_file = os.path.join(self.base_path, "invoices.html")
+
+        if os.path.exists(pdf_file):
+            os.remove(pdf_file)
+        if os.path.exists(html_file):
+            os.remove(html_file)
 
     def test_execute_should_return_the_pdf_file(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
@@ -75,15 +86,14 @@ class JasperTestCase(unittest.TestCase):
         self.assertEqual(filetype.decode(), 'application/pdf; charset=binary')
 
     def test_execute_with_empty_query(self):
-        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
+        jasper = Jasper(os.path.join(self.base_path, "invoices.jrxml"))
         file = jasper.execute(self.data, "html", query=None, compile=True)
 
-        soup = BeautifulSoup(file)
+        soup = BeautifulSoup(file, features="html.parser")
 
         table = soup.find('table', class_='jrPage')
-        lines = table.find_all('span', attrs={
-            'style': 'font-family: Times New Roman; color: #000000; font-size: 14px; line-height: 1.1499023;'})
-        self.assertEqual(len(lines), 12)
+        lines = table.find_all('tr', attrs={'style': 'height:18px'})
+        self.assertEqual(len(lines), 11)
 
     def test_name_attribute(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
@@ -96,15 +106,14 @@ class JasperTestCase(unittest.TestCase):
 
     def test_resource_dir(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
-        curdir = os.path.abspath(os.path.curdir)
-        self.assertEqual(jasper.resource_dir, curdir)
+        self.assertEqual(jasper.resource_dir, self.base_path)
 
     def test_execute_should_return_the_error_message_raised_by_comand_line(self):
         jasperstarter.FORMATS = ['mp3']
-        jasper = Jasper("invoices.jrxml")
+        jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         from jasperstarter.exeptions import JRRuntimeError
         with self.assertRaises(JRRuntimeError) as err:
-            jasper.execute({}, format='mp3', compile=True)
+            jasper.execute({}, format='mp3')
         self.assertTrue("could  not  convert  'mp3'" in str(err.exception))
 
     def test_parameters_cmd(self):
@@ -113,11 +122,11 @@ class JasperTestCase(unittest.TestCase):
         pcmd = jasper._parameters_cmd(params)
         self.assertEqual(['company=Vortex', 'beginDate=2019-28-01', 'age=32'], pcmd)
 
-    def test_parameters_shold_be_rended_on_report(self):
+    def test_report_parameters(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         today = date.today().isoformat()
-        output = jasper.execute(self.data, format="html",
-            params={'companyName': 'Vortex', 'beginDate': today})
+        output = jasper.execute(
+            self.data, format="html", params={'companyName': 'Vortex', 'beginDate': today}, compile=True)
 
         soup = BeautifulSoup(output)
         self.assertEqual(1, len(soup.find_all('span', string='Vortex')))
