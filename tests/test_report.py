@@ -69,14 +69,14 @@ class JasperTestCase(unittest.TestCase):
 
     def test_execute_should_return_the_pdf_file(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
-        file = jasper.execute(self.data, "pdf")
+        file = jasper.execute(self.data, "pdf", compile=True)
         popen = Popen("/usr/bin/file -b --mime -", shell=True, stdout=PIPE, stdin=PIPE)
         filetype = popen.communicate(file)[0].strip()
         self.assertEqual(filetype.decode(), 'application/pdf; charset=binary')
 
     def test_execute_with_empty_query(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
-        file = jasper.execute(self.data, "html", query=None)
+        file = jasper.execute(self.data, "html", query=None, compile=True)
 
         soup = BeautifulSoup(file)
 
@@ -104,7 +104,7 @@ class JasperTestCase(unittest.TestCase):
         jasper = Jasper("invoices.jrxml")
         from jasperstarter.exeptions import JRRuntimeError
         with self.assertRaises(JRRuntimeError) as err:
-            jasper.execute({}, format='mp3')
+            jasper.execute({}, format='mp3', compile=True)
         self.assertTrue("could  not  convert  'mp3'" in str(err.exception))
 
     def test_parameters_cmd(self):
