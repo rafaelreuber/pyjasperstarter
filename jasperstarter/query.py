@@ -23,3 +23,30 @@ class SQL:
         for k, v in self.param_map.items():
             _query = _query.replace(k, v)
         return _query
+
+
+class DbapiAdapter:
+
+    def __init__(self, jasper):
+        self.jasper = jasper
+        self.sql = SQL(self.jasper.jrxml.query).to_dbapi()
+
+    def run(self, conn):
+        cursor = conn.cursor()
+        try:
+            result = cursor.execute(self.sql)
+            data = self._dictfetchall(result)
+        finally:
+            cursor.close()
+        return data
+
+    @staticmethod
+    def _dictfetchall(cursor):
+        """
+        Return all rows from a cursor as a dict
+        """
+        columns = [col[0].lower() for col in cursor.description]
+        data = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()]
+        return data
