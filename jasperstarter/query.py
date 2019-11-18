@@ -45,7 +45,7 @@ class DbapiAdapter:
         """
         Return all rows from a cursor as a dict
         """
-        columns = [col[0].lower() for col in cursor.description]
+        columns = [col[0] for col in cursor.description]
         data = [
             dict(zip(columns, row))
             for row in cursor.fetchall()]
