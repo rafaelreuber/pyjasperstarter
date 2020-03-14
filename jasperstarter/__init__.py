@@ -11,7 +11,7 @@ from tempfile import TemporaryDirectory
 from xml.etree import ElementTree as ET
 
 from .exeptions import JasperStarterNotFound, \
-    JrxmlNotFound, UnsupportedFormat
+    JrxmlInvalidError, UnsupportedFormat
 
 from .util import get_error
 from .exeptions import JRRuntimeError

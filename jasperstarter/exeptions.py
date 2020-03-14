@@ -5,8 +5,8 @@ class JasperStarterNotFound(Exception):
     pass
 
 
-class JrxmlNotFound(Exception):
-    """The report definition file (jrxml) cannot be found"""
+class JrxmlInvalidError(Exception):
+    """The report definition file (jrxml) is invalid"""
 
 
 class UnsupportedFormat(Exception):
