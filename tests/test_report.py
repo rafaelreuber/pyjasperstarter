@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 import jasperstarter
 from jasperstarter import Jasper, Jrxml
-from jasperstarter.exeptions import JrxmlNotFound
+from jasperstarter.exeptions import JrxmlInvalidError
 from jasperstarter.exeptions import UnsupportedFormat
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -18,6 +18,7 @@ class JrxmlTestCase(unittest.TestCase):
 
     def setUp(self):
         self.jxml_file = os.path.join(os.path.dirname(__file__), "invoices.jrxml")
+        self.base_path = os.path.dirname(__file__)
 
     def tearDown(self):
         if os.path.exists("invoices.jasper"):
@@ -29,8 +30,19 @@ class JrxmlTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(
             os.path.join(os.path.dirname(__file__), "invoices.jasper")))
 
+    def test_string_construct(self):
+        with open(self.jxml_file, 'r') as f:
+            xml = f.read()
+        jrxml = Jrxml(xml)
+        self.assertIsNotNone(jrxml.query)
+
     def test_report_compile_should_raise_exeption_if_the_jrxml_not_found(self):
-        with self.assertRaises(JrxmlNotFound):
+        with self.assertRaises(JrxmlInvalidError):
+            jrxml = Jrxml('imnotarobot.jrxml')
+            jrxml.compile()
+
+    def test_report_compile_should_raise_exeption_if_the_jrxml_not_found(self):
+        with self.assertRaises(JrxmlInvalidError):
             jrxml = Jrxml('imnotarobot.jrxml')
             jrxml.compile()
 
@@ -43,6 +55,10 @@ class JrxmlTestCase(unittest.TestCase):
     def test_query(self):
         jrxml = Jrxml(self.jxml_file)
         self.assertEqual(jrxml.query, ".")
+
+    def test_should_consider_subdatset_query_if_the_main_query_is_empty(self):
+        jrxml = Jrxml(os.path.join(self.base_path, 'fornecedor.jrxml'))
+        self.assertEquals("select vendor_name, creation_date from apps.ap_suppliers", jrxml.query)
 
 
 class JasperTestCase(unittest.TestCase):
