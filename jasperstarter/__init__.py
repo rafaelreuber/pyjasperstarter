@@ -3,7 +3,9 @@ import os
 import json
 import logging
 import datetime
+import tempfile
 import subprocess
+
 from subprocess import PIPE
 import time
 from shutil import which
@@ -14,6 +16,7 @@ from .exeptions import JasperStarterNotFound, \
     JrxmlInvalidError, UnsupportedFormat
 
 from .util import get_error
+from .query import SQL
 from .exeptions import JRRuntimeError
 
 logger = logging.getLogger('jasperstarter')
@@ -39,7 +42,7 @@ class Jrxml:
         :param jrxml: jrxml file.
         """
         if not os.path.exists(jrxml):
-            raise JrxmlNotFound()
+            raise JrxmlInvalidError()
         self.xml = jrxml
         with open(jrxml, 'r', newline='\n') as f:
             self.xml_data = f.read()
@@ -64,8 +67,41 @@ class Jrxml:
     @property
     def query(self):
         xml = ET.fromstring(self.xml_data)
-        _query = xml.find('jspr:queryString', self.namespace).text
+        _query = xml.find('jspr:queryString', self.namespace).text.strip()
+        if not _query and self.have_subdataset():
+            _query = self.__get_subdataset_query()
+        if _query is "":
+            return None
+        sql_dbapi = SQL(_query).to_dbapi()
+        return sql_dbapi
+
+    def __get_subdataset_query(self):
+        xml = ET.fromstring(self.xml_data)
+        if len(xml.findall('jspr:subDataset', self.namespace)) > 1:
+            raise Exception("Multiple subDataset not supported")
+        _query = xml.find('jspr:subDataset/jspr:queryString', self.namespace).text
         return _query.strip()
+
+    def have_subdataset(self):
+        xml = ET.fromstring(self.xml_data)
+        return len(xml.findall('jspr:subDataset', self.namespace)) == 1
+
+    @staticmethod
+    def write(file, data):
+        try:
+            ET.fromstring(data)
+        except ET.ParseError:
+            raise JrxmlInvalidError()
+        with open(file, 'w') as f:
+            f.write(data)
+        return Jrxml(file)
+
+    @staticmethod
+    def get_meta(data):
+        with tempfile.TemporaryFile(suffix=".jxml") as fp:
+            fp.write(data)
+            jrml = Jrxml(fp.name)
+            return jrml
 
 
 class Jasper:
@@ -144,3 +180,21 @@ def get_jasper_starter_version():
 def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
+
+
+def get_query(xml):
+    xml = ET.fromstring(xml)
+    _query = xml.find('jspr:queryString', Jrxml.namespace).text.strip()
+    if not _query:
+        if len(xml.findall('jspr:subDataset', Jrxml.namespace)) > 1:
+            raise Exception("Multiple subDataset not supported")
+        _query = xml.find('jspr:subDataset/jspr:queryString', Jrxml.namespace).text
+        return _query.strip()
+    return _query
+
+
+def get_meta_from_source(xml):
+    with tempfile.NamedTemporaryFile(suffix='.jrxml') as f:
+        f.write(xml.encode())
+        jr = Jrxml(f.name)
+        return jr.query, jr.params

@@ -54,6 +54,11 @@ class JrxmlTestCase(unittest.TestCase):
         jrxml = Jrxml(os.path.join(self.base_path, 'fornecedor.jrxml'))
         self.assertEqual("select vendor_name, creation_date from apps.ap_suppliers", jrxml.query)
 
+    def test_get_metadata_from_sources(self):
+        with open(self.jxml_file, 'r') as f:
+            xml = f.read()
+        self.assertIsNotNone(Jrxml.get_meta_from_source(xml))
+
 
 class JasperTestCase(unittest.TestCase):
 
