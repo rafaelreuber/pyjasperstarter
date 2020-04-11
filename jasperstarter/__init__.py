@@ -120,13 +120,12 @@ class Jasper:
     def params(self):
         return self.jrxml.params
 
-    def execute(self, data, format='pdf', params=None, output=None, query=None, compile=False):
+    def fill(self, data, params=None, format='pdf', output=None, query=None, compile=False):
         start = time.perf_counter()
         if compile:
             self.compile()
         if format not in FORMATS:
             raise UnsupportedFormat()
-
         if not query:
             query = ""
 
@@ -141,25 +140,21 @@ class Jasper:
             cmd = ['jasperstarter', '--locale', self.locale, 'pr', self.jasper_file,
                    '-t', 'json', '--data-file', f.name, '--json-query', query,
                    '-f', format, '-o', dirname, '-r', self.resource_dir]
-
             if params:
                 _params = self._parameters_cmd(params)
                 cmd = cmd + ['-P'] + _params
-
             if logger.level == logging.DEBUG:
                 logger.debug("Processing: " + " ".join(cmd))
             else:
                 logger.info("Processing :" + self.name)
 
             cp = subprocess.run(cmd, stderr=PIPE, stdout=PIPE)
-
             end = time.perf_counter()
             logger.debug("Processing  time: {:3.2f}s".format(end - start))
 
             if cp.returncode != 0:
                 err = get_error(cp.stderr)
                 raise JRRuntimeError(err)
-
             with open(file, 'rb') as fb:
                 fbytes = fb.read()
             return fbytes

@@ -54,11 +54,6 @@ class JrxmlTestCase(unittest.TestCase):
         jrxml = Jrxml(os.path.join(self.base_path, 'fornecedor.jrxml'))
         self.assertEqual("select vendor_name, creation_date from apps.ap_suppliers", jrxml.query)
 
-    def test_get_metadata_from_sources(self):
-        with open(self.jxml_file, 'r') as f:
-            xml = f.read()
-        self.assertIsNotNone(Jrxml.get_meta_from_source(xml))
-
 
 class JasperTestCase(unittest.TestCase):
 
@@ -95,14 +90,14 @@ class JasperTestCase(unittest.TestCase):
 
     def test_execute_should_return_the_pdf_file(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
-        file = jasper.execute(self.data, "pdf", compile=True)
+        file = jasper.fill(self.data, format="pdf", compile=True)
         popen = Popen("/usr/bin/file -b --mime -", shell=True, stdout=PIPE, stdin=PIPE)
         filetype = popen.communicate(file)[0].strip()
         self.assertEqual(filetype.decode(), 'application/pdf; charset=binary')
 
     def test_execute_with_empty_query(self):
         jasper = Jasper(os.path.join(self.base_path, "invoices.jrxml"))
-        file = jasper.execute(self.data, "html", query=None, compile=True)
+        file = jasper.fill(self.data, format="html", query=None, compile=True)
 
         soup = BeautifulSoup(file, features="html.parser")
 
@@ -117,7 +112,7 @@ class JasperTestCase(unittest.TestCase):
     def test_raise_error_if_use_a_unsopported_file_type(self):
         with self.assertRaises(UnsupportedFormat):
             jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
-            jasper.execute(self.data, "mp3")
+            jasper.fill(self.data, format="mp3")
 
     def test_resource_dir(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
@@ -128,7 +123,7 @@ class JasperTestCase(unittest.TestCase):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         from jasperstarter.exeptions import JRRuntimeError
         with self.assertRaises(JRRuntimeError) as err:
-            jasper.execute({}, format='mp3')
+            jasper.fill({}, format='mp3')
         self.assertTrue("could  not  convert  'mp3'" in str(err.exception))
 
     def test_parameters_cmd(self):
@@ -140,7 +135,7 @@ class JasperTestCase(unittest.TestCase):
     def test_report_parameters(self):
         jasper = Jasper(os.path.join(os.path.dirname(__file__), "invoices.jrxml"))
         today = date.today().isoformat()
-        output = jasper.execute(
+        output = jasper.fill(
             self.data, format="html", params={'companyName': 'Vortex', 'beginDate': today}, compile=True)
 
         soup = BeautifulSoup(output, features="html.parser")

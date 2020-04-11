@@ -51,8 +51,8 @@ class QueryAdapter(unittest.TestCase):
         adapter = DbapiAdapter(employees)
         data = adapter.run(self.conn)
 
-        file = employees.execute(data=data, format='pdf', compile=True)
+        file = employees.fill(data=data, format='pdf', compile=True)
         self.assertIsInstance(file, bytes)
 
-        file = employees.execute(data=data, format='xlsx', compile=True)
+        file = employees.fill(data=data, format='xlsx', compile=True)
         self.assertIsInstance(file, bytes)
