@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='pyjasperstarter',
-    version='0.0.1',
+    version='0.0.2',
     packages=['jasperstarter'],
     url='https://github.com/rafaelreuber/pyjasperstarter',
     license='MIT',
